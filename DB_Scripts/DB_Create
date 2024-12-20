@@ -1,0 +1,133 @@
+psql postgres
+CREATE DATABASE products;
+\c products;
+
+CREATE TABLE IF NOT EXISTS public.materials
+(
+    id integer NOT NULL,
+    name character varying COLLATE pg_catalog."default" NOT NULL,
+    material_type integer,
+    image character varying COLLATE pg_catalog."default",
+    price money,
+    quantity integer,
+    min_quantity integer,
+    package_quantity integer,
+    units_of_measurement integer,
+    CONSTRAINT id PRIMARY KEY (id),
+    CONSTRAINT materials_material_type_fkey FOREIGN KEY (material_type)
+        REFERENCES public.material_type (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT materials_units_of_measurement_fkey FOREIGN KEY (units_of_measurement)
+        REFERENCES public.units_of_measurement (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.materials
+    OWNER to newuser;
+
+
+command " "\\copy public.materials (material_name, material_type, image, price, quantity, min_quantity, package_quantity, units_of_measurement) FROM '/Users/sergunkit/PycharmProjects/ProductsProject/data/materialsM.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8' QUOTE '\"';""
+
+CREATE TABLE IF NOT EXISTS public.material_type
+(
+    id integer NOT NULL,
+    type character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT material_type_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.material_type
+    OWNER to newuser;
+
+INSERT INTO public.material_type (id, type) VALUES (1, 'Гранулы'), (2, 'Краски'), (3, 'Нитки');
+
+ALTER TABLE IF EXISTS public.materials
+    ADD CONSTRAINT materials_material_type_fkey FOREIGN KEY (material_type)
+    REFERENCES public.material_type (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+CREATE TABLE IF NOT EXISTS public.units_of_measurement
+(
+    id integer NOT NULL,
+    units_of_measurement character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT units_of_measurement_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.units_of_measurement
+    OWNER to newuser;
+
+INSERT INTO public.units_of_measurement (id, units_of_measurement) VALUES (1, 'л'), (2, 'м'), (3, 'г'), (4, 'кг');
+
+CREATE TABLE IF NOT EXISTS public.suppliers
+(
+    id integer NOT NULL,
+    name character varying COLLATE pg_catalog."default" NOT NULL,
+    owner_type integer,
+    inn bigint,
+    raiting integer,
+    start_date date,
+    CONSTRAINT suppliers_pkey PRIMARY KEY (id),
+    CONSTRAINT suppliers_owner_type_fkey FOREIGN KEY (owner_type)
+        REFERENCES public.owner_type (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.suppliers
+    OWNER to newuser;
+
+--command " "\\copy public.suppliers (name, owner_type, inn, raiting, start_date) FROM '/Users/sergunkit/PycharmProjects/ProductsProject/data/supplierM.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8' QUOTE '\"';""
+
+
+CREATE TABLE IF NOT EXISTS public.owner_type
+(
+    id integer NOT NULL,
+    owner_type character varying COLLATE pg_catalog."default" NOT NULL,
+    CONSTRAINT owner_type_pkey PRIMARY KEY (id)
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.owner_type
+    OWNER to newuser;
+
+
+INSERT INTO public.owner_type (id, owner_type) VALUES (1, 'МКК'), (2, 'ОАО'), (3, 'ООО'), (4, 'ЗАО'), (5, 'МФО'), (6, 'ПАО');
+ALTER TABLE IF EXISTS public.suppliers
+    ADD CONSTRAINT suppliers_pkey PRIMARY KEY (id);
+
+
+CREATE TABLE IF NOT EXISTS public.suppliers_materials
+(
+    id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    material_id integer,
+    supplier_id integer,
+    CONSTRAINT main PRIMARY KEY (id),
+    CONSTRAINT mater FOREIGN KEY (material_id)
+        REFERENCES public.materials (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT supl FOREIGN KEY (supplier_id)
+        REFERENCES public.suppliers (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+)
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.suppliers_materials
+    OWNER to newuser;
+
+--command " "\\copy public.suppliers_materials (material_id, supplier_id) FROM '/Users/sergunkit/PycharmProjects/ProductsProject/data/material_supplierM.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8' QUOTE '\"';""
